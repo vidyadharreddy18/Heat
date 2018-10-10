@@ -1,0 +1,57 @@
+heat_template_version: 2015-04-30
+
+description: <
+  simple template to create a network subnet and launch a VM.
+
+parameters:
+  image:
+    type: string
+    label: name
+    description: name of the image to be used
+    default: cirros-0.3.5-x86_64-disk
+  flavor:
+    type: string
+    label: flavor name
+    description: name of the flavor to be used
+    default: m1.tiny
+    constraints:
+    - allowed_values: [ m1.tiny, m1.medium, m1.large, m1.xlarge ]
+      description: Value must be one of m1.medium, m1.large or m1.xlarge.
+
+resources:
+  net_test:
+    type: OS::Neutron::Net
+    description: test network
+    properties:
+      name: test_net
+  subnet_test:
+    depends_on: [ net_test ]
+    type: OS::Neutron::Subnet
+    description: test subnet
+    properties:
+      name: test_subnet
+      network_id: { get_resource: net_test }
+      cidr: 10.0.1.0/24
+  server_test:
+    depends_on: [ net_test, subnet_test ]
+    type: OS::Nova::Server
+    description: test_server
+    properties:
+      name: Server_test
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks:
+      - network: { get_resource: net_test }
+
+outputs:
+  network_id:
+    description: the id of the network created
+    value: {get_resource: net_test }
+  subnet_id:
+    description: The Id of the created subnet
+    value: {get_resource: subnet_test}
+  instance_ip:
+    description: The IP address of the instance
+    value: { get_attr: [server_test, first_address] }
+
+
