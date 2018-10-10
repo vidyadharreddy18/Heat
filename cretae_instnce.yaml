@@ -1,0 +1,28 @@
+heat_template_version: 2015-04-30
+
+description: simple template to create a network subnet and launch a VM
+
+resources:
+  net_test:
+    type: OS::Neutron::Net
+    description: test network
+    properties:
+      name: test_net
+
+  subnet_test:
+    type: OS::Neutron::Subnet
+    description: test subnet
+    properties:
+      name: test_subnet
+      network_id: { get_resource: net_test }
+      cidr: 10.0.1.0/24
+
+  Server_test:
+    type: OS::Nova::Server
+    description: test_server
+    properties:
+      name: Server_test
+      image: cirros-0.3.5-x86_64-disk
+      flavor: m1.tiny
+      networks:
+      - network: { get_resource: net_test }
